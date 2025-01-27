@@ -1,0 +1,139 @@
+Customer Churn Prediction
+
+Overview
+
+This project aims to predict customer churn using the Telco Customer Churn dataset. The dataset contains information about customer demographics, account details, and service subscriptions. Two machine learning models, Logistic Regression and Random Forest, are implemented to analyze customer churn behavior.
+
+Dataset
+
+The dataset used in this project is WA_Fn-UseC_-Telco-Customer-Churn.csv, which includes the following features:
+
+Customer demographics (e.g., gender, senior citizen status, dependents)
+
+Account details (e.g., contract type, payment method, monthly charges)
+
+Services subscribed (e.g., internet service, online security, streaming services)
+
+Churn status (target variable)
+
+Installation
+
+Ensure you have the required dependencies installed using the following command:
+
+pip install pandas numpy matplotlib seaborn scikit-learn
+
+Project Workflow
+
+Data Preprocessing:
+
+Load the dataset and remove unnecessary columns (customerID)
+
+Convert TotalCharges column to numeric and handle missing values
+
+Encode categorical variables
+
+Split data into train and test sets
+
+Standardize numerical features
+
+Model Training:
+
+Logistic Regression
+
+Random Forest with hyperparameter tuning using GridSearchCV
+
+Model Evaluation:
+
+Accuracy, Precision, Recall, F1-Score
+
+Confusion Matrix
+
+ROC Curve and AUC Score
+
+Feature Importance
+
+Implementation
+
+1. Data Preprocessing
+
+# Load dataset
+df = pd.read_csv("WA_Fn-UseC_-Telco-Customer-Churn.csv")
+df.drop(['customerID'], axis=1, inplace=True)
+df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
+df['TotalCharges'].fillna(df['TotalCharges'].median(), inplace=True)
+
+# Encode categorical variables
+le = LabelEncoder()
+categorical_cols = df.select_dtypes(include=['object']).columns
+for col in categorical_cols:
+    df[col] = le.fit_transform(df[col])
+
+# Split the dataset
+X = df.drop(columns=['Churn'])
+y = df['Churn']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+
+# Standardization
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+2. Logistic Regression Model
+
+lr_model = LogisticRegression()
+lr_model.fit(X_train, y_train)
+y_pred = lr_model.predict(X_test)
+print(classification_report(y_test, y_pred))
+
+3. Random Forest Model with Hyperparameter Tuning
+
+param_grid = {
+    'n_estimators': [100, 200, 300],
+    'max_depth': [10, 20, None],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4]
+}
+grid_search = GridSearchCV(RandomForestClassifier(random_state=42), param_grid, cv=5, scoring='recall')
+grid_search.fit(X_train, y_train)
+print("Best Hyperparameters:", grid_search.best_params_)
+
+4. Model Evaluation
+
+conf_matrix = confusion_matrix(y_test, y_pred)
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues')
+plt.title("Confusion Matrix")
+plt.show()
+
+5. Feature Importance
+
+Logistic Regression
+
+feature_importance_lr = np.abs(lr_model.coef_[0])
+plt.barh(X.columns, feature_importance_lr)
+plt.xlabel("Importance Score")
+plt.title("Feature Importance in Logistic Regression")
+plt.show()
+
+Random Forest
+
+feature_importance_rf = grid_search.best_estimator_.feature_importances_
+sns.barplot(x=feature_importance_rf, y=X.columns)
+plt.xlabel("Importance Score")
+plt.title("Feature Importance in Random Forest Model")
+plt.show()
+
+Results
+
+The performance of the models is evaluated based on:
+
+Accuracy
+
+Precision, Recall, and F1-Score
+
+ROC-AUC Score
+
+Conclusion
+
+Logistic Regression provides interpretability and baseline performance.
+
+Random Forest offers improved accuracy and feature importance insights.
